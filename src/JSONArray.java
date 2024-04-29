@@ -1,9 +1,13 @@
+package src;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
  * JSON arrays.
+ * @author Sam Rebelsky
+ * @author Garikai
+ * @author Zakariye
  */
 public class JSONArray implements JSONValue {
 
@@ -35,21 +39,43 @@ public class JSONArray implements JSONValue {
    * Convert to a string (e.g., for printing).
    */
   public String toString() {
-    return "";          // STUB
+    StringBuilder result = new StringBuilder();
+    for (JSONValue value : this.values) {
+      // Append each string with a comma and space
+      result.append(value.toString()).append(", "); 
+    }
+    // Remove the trailing ", " if there are any elements
+    if (result.length() > 0) {
+    result.setLength(result.length() - 2);
+    }
+    return "["+result.toString()+"]"; 
   } // toString()
 
   /**
    * Compare to another object.
    */
   public boolean equals(Object other) {
-    return true;        // STUB
+    // check type and size
+    if (!(other instanceof JSONArray) || 
+        (this.values.size() != ((JSONArray) other).size())) {
+          return false;
+    }
+    // objevt to compare
+    JSONArray otherArray = (JSONArray) other;
+    // compare each item in each respective position
+    for (int i = 0; i < this.values.size(); i++) {
+      if (!(this.get(i).equals(otherArray.get(i)))) {
+        return false;
+      } // if
+    } // for
+    return true;
   } // equals(Object)
 
   /**
    * Compute the hash code.
    */
   public int hashCode() {
-    return 0;           // STUB
+    return this.values.hashCode();      
   } // hashCode()
 
   // +--------------------+------------------------------------------
@@ -60,7 +86,7 @@ public class JSONArray implements JSONValue {
    * Write the value as JSON.
    */
   public void writeJSON(PrintWriter pen) {
-                        // STUB
+    pen.println(this.toString());
   } // writeJSON(PrintWriter)
 
   /**

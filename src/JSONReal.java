@@ -1,29 +1,48 @@
+package src;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 
 /**
- * JSON strings.
+ * JSON reals.
+ * @author Sam Rebelsky
+ * @author Garikai
+ * @author Zakariye
  */
-public class JSONString implements JSONValue {
+public class JSONReal implements JSONValue {
 
   // +--------+------------------------------------------------------
   // | Fields |
   // +--------+
 
   /**
-   * The underlying string.
+   * The underlying double.
    */
-  String value;
+  BigDecimal value;
 
   // +--------------+------------------------------------------------
   // | Constructors |
   // +--------------+
 
   /**
-   * Build a new JSON string for a particular string.
+   * Create a new real given the underlying string.
    */
-  public JSONString(String value) {
+  public JSONReal(String str) {
+    this.value = new BigDecimal(str);
+  } // JSONReal(String)
+
+  /**
+   * Create a new real given a BigDecimal.
+   */
+  public JSONReal(BigDecimal value) {
     this.value = value;
-  } // JSONString(String)
+  } // JSONReal(BigDecimal)
+
+  /**
+   * Create a new real given a double.
+   */
+  public JSONReal(double d) {
+    this.value = BigDecimal.valueOf(d);
+  } // JSONReal(double)
 
   // +-------------------------+-------------------------------------
   // | Standard object methods |
@@ -33,21 +52,22 @@ public class JSONString implements JSONValue {
    * Convert to a string (e.g., for printing).
    */
   public String toString() {
-    return "";          // STUB
+    return this.value.toString();
   } // toString()
 
   /**
    * Compare to another object.
    */
   public boolean equals(Object other) {
-    return true;        // STUB
+    return ((other instanceof JSONReal) && 
+             this.value.equals(((JSONReal) other).getValue()));
   } // equals(Object)
 
   /**
    * Compute the hash code.
    */
   public int hashCode() {
-    return 0;           // STUB
+    return this.value.hashCode();        
   } // hashCode()
 
   // +--------------------+------------------------------------------
@@ -58,14 +78,14 @@ public class JSONString implements JSONValue {
    * Write the value as JSON.
    */
   public void writeJSON(PrintWriter pen) {
-                        // STUB
+    pen.println(this.toString());
   } // writeJSON(PrintWriter)
 
   /**
    * Get the underlying value.
    */
-  public String getValue() {
+  public BigDecimal getValue() {
     return this.value;
   } // getValue()
 
-} // class JSONString
+} // class JSONReal

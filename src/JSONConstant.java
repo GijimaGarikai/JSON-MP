@@ -1,7 +1,10 @@
+package src;
 import java.io.PrintWriter;
 
 /**
  * JSON constants.
+ * @author Sam Rebelsky
+
  */
 public class JSONConstant implements JSONValue {
 
