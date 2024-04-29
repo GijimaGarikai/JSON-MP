@@ -72,13 +72,13 @@ public class JSON {
       throw new ParseException("Unexpected end of file", pos);
     }
     char curChar = (char) ch;
-    return decide(source, curChar);
+    return decideType(source, curChar);
   } // parseKernel
 
   /*
    * Given a character, decide the type of value to read
    */
-  private static JSONValue decide(Reader source, char starterChar) throws Exception{
+  private static JSONValue decideType(Reader source, char starterChar) throws Exception{
     char curChar = starterChar;
     if (curChar == '"') {
       return parseString(source);
@@ -118,10 +118,33 @@ public class JSON {
     return (' ' == ch) || ('\n' == ch) || ('\r' == ch) || ('\t' == ch);
   } // isWhiteSpace(int)
 
+  /*
+   * Check the current character, if its a special character indicator return it properly. If not return as is.
+   */
+  private static char charCheck(Reader source, char curChar) throws IOException, InvalidJSONException {
+    // special char check
+    if (curChar == '\\') {
+      // read next char to determine type of special char
+      source.mark(0);
+      int ch = source.read();
+      if ((char) ch == '\\') {
+        return '\\';
+      } else if ((char) ch == 'n') {
+        return '\n';
+      } else if ((char) ch == 't') {
+        return '\t';
+      } else if ((char) ch == 'r') {
+        return '\r';
+      } else {
+        throw new InvalidJSONException("Invalid String syntax, backslash not followed by valid character");
+      } // if-else
+    } // if
+    return curChar;
+  }
   /**
    * Build a JSON string from the source we are reading from
    */
-  private static JSONString parseString(Reader source) throws IOException, ParseException {
+  private static JSONString parseString(Reader source) throws IOException, ParseException, InvalidJSONException {
     int ch;
     StringBuilder result = new StringBuilder();
     // get next character
@@ -129,8 +152,8 @@ public class JSON {
     char curChar = (char) ch;
     // keep running until we meet the closing double quote
     while (curChar != '"') {
-      // add character to our result
-      result.append(curChar);
+      // see if we are dealing with a special character and append as needed
+      result.append(charCheck(source,curChar));
       // mark position
       source.mark(1);
       // read next character
@@ -141,8 +164,8 @@ public class JSON {
       curChar = (char) ch;
     } // while
     return new JSONString(result.toString());
-  } // parseString(Reader source)
-  
+  } // parseString (Reader source)
+
   /**
    * Build a JSON numerical value, either JSONReal or JSONInteger from the source we are reading from
    */
@@ -188,7 +211,7 @@ public class JSON {
    * Checks if a character is part of a valid number
    */
   private static boolean validNum(char curChar, boolean decimals, boolean expo, boolean sign) throws InvalidJSONException {
-    if (!(Character.isDigit(curChar) || curChar == '.' || curChar == 'e' || curChar == '-')) {
+    if (!(Character.isDigit(curChar) || curChar == '.' || curChar == 'e' || curChar == '-' || curChar == '+')) {
       return false;
     }
     if (curChar == '.' && decimals) {
@@ -211,19 +234,16 @@ public class JSON {
     int ch;
     ch = skipWhitespace(source);
     while (ch != -1) {
-      JSONValue cur = decide(source, (char) ch);
+      JSONValue cur = decideType(source, (char) ch);
       result.add(cur);
       source.reset();
       ch = skipWhitespace(source);
       if ((char) ch == '"'){
         ch = skipWhitespace(source);
-      }
-      if ((char) ch == '}') {
-        ch = skipWhitespace(source);
-      }
+      }// if
       if ((char) ch == ',') {
         ch = skipWhitespace(source);
-      }
+      }// if
       if ((char) ch == ']') {
         ch = skipWhitespace(source);
         return result;
@@ -243,7 +263,7 @@ public class JSON {
     int ch;
     ch = skipWhitespace(source);
     while (ch != -1) {
-      key = decide(source, (char) ch);
+      key = decideType(source, (char) ch);
       // last thing read from a string is '"' so no need to reset
       if (!(key instanceof JSONString)) {
         throw new InvalidJSONException("Expected JSONString but recieved "+ key.getClass().getName());
@@ -254,7 +274,7 @@ public class JSON {
       }// if
       // get the next character and get the value of our key
       ch = skipWhitespace(source);
-      value = decide(source, (char) ch);
+      value = decideType(source, (char) ch);
       // set the key/value pair
       result.set((JSONString) key,value);
       // reset to the last value read
