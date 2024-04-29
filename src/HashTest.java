@@ -2,6 +2,7 @@ package src;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.Iterator;
@@ -44,8 +45,9 @@ public class HashTest {
 
     //   eyes.reset();
     // }
-
-    JSONValue word = JSON.parse("{\"pls\":[\"john\s snow\", 1234, -2.5, [65,\"test\"], {\"heyy\":[123]}], \"I wish a nigga would\":{\"wow\":[123,456]}}}");
+    JSONReal num = new JSONReal(12e2);
+    num.writeJSON(pen);
+    JSONValue word = JSON.parseFile("src/readFile.txt");
     word.writeJSON(pen);
 
   }

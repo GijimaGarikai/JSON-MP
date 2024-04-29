@@ -1,4 +1,5 @@
 package src;
+import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -28,7 +29,7 @@ public class JSON {
   /**
    * Parse a string into JSON.
    */
-  public static JSONValue parse(String source) throws Exception {
+  public static JSONValue parseString(String source) throws Exception {
     return parse(new StringReader(source));
   } // parse(String)
 
@@ -36,7 +37,7 @@ public class JSON {
    * Parse a file into JSON.
    */
   public static JSONValue parseFile(String filename) throws Exception {
-    FileReader reader = new FileReader(filename);
+    BufferedReader reader = new BufferedReader(new FileReader(filename));
     JSONValue result = parse(reader);
     reader.close();
     return result;
@@ -47,10 +48,13 @@ public class JSON {
    */
   public static JSONValue parse(Reader source) throws Exception {
     pos = 0;
+    if (!source.markSupported()) {
+      throw new ParseException("The given Reader does not support the mark() method, currently that method is needed to run the parser", pos);
+    } // if
     JSONValue result = parseKernel(source);
     if (-1 != skipWhitespace(source)) {
       throw new ParseException("Characters remain at end", pos);
-    }
+    } // if
     return result;
   } // parse(Reader)
 
@@ -70,6 +74,28 @@ public class JSON {
     char curChar = (char) ch;
     return decide(source, curChar);
   } // parseKernel
+
+  /*
+   * Given a character, decide the type of value to read
+   */
+  private static JSONValue decide(Reader source, char starterChar) throws Exception{
+    char curChar = starterChar;
+    if (curChar == '"') {
+      return parseString(source);
+    } else if (Character.isDigit(curChar)) {
+      return parseNum(source, false);
+    } else if (curChar == '-') {
+      return parseNum(source, true);
+    } else if (curChar == '{') {
+      return parseHash(source);
+    } else if (curChar == '[') {
+      return parseArray(source);
+    } else if (curChar == 'n' || curChar == 'f' || curChar == 't') {
+      return parseConstant(source);
+    } else {
+      throw new InvalidJSONException("Invalid syntax");
+    } // if-else
+  }
 
   /**
    * Get the next character from source, skipping over whitespace.
@@ -92,14 +118,22 @@ public class JSON {
     return (' ' == ch) || ('\n' == ch) || ('\r' == ch) || ('\t' == ch);
   } // isWhiteSpace(int)
 
+  /**
+   * Build a JSON string from the source we are reading from
+   */
   private static JSONString parseString(Reader source) throws IOException, ParseException {
     int ch;
     StringBuilder result = new StringBuilder();
+    // get next character
     ch = skipWhitespace(source);
     char curChar = (char) ch;
+    // keep running until we meet the closing double quote
     while (curChar != '"') {
+      // add character to our result
       result.append(curChar);
+      // mark position
       source.mark(1);
+      // read next character
       ch = source.read();
       if (ch == -1) {
         throw new ParseException("Unexpected end of file", pos);
@@ -108,26 +142,35 @@ public class JSON {
     } // while
     return new JSONString(result.toString());
   } // parseString(Reader source)
-
+  
+  /**
+   * Build a JSON numerical value, either JSONReal or JSONInteger from the source we are reading from
+   */
   private static JSONValue parseNum(Reader source, boolean negative) throws IOException, ParseException, InvalidJSONException {
+    // initialize values
     int ch;
-    int decimals = 0;
+    boolean decimals = false;
+    boolean expo = false;
+    boolean sign = false;
     StringBuilder result = new StringBuilder();
     if (negative) {
       result.append('-');
     } else {
-      // we read a digit before calling so we have to get it back
+      // we read a digit before calling this method so we have to read it again to include it
       source.reset();
     }
+    // get next character
     ch = skipWhitespace(source);
     char curChar = (char) ch;
-    while (Character.isDigit(curChar) || curChar == '.') {
-      if (curChar == '.' && decimals > 0) {
-        throw new InvalidJSONException("Invalid numeric value: more than 1 decimal point");
-      } // if
+    // while we build a valid numerical value
+    while (validNum(curChar, decimals, expo, sign)) {
       if (curChar == '.') {
-        decimals++;
-      } // if
+        decimals = true;
+      } else if (curChar == 'e') {
+        expo = true;
+      } else if (curChar == '-' || curChar == '+') {
+        sign = true;
+      }// if-else
       result.append(curChar);
       ch = skipWhitespace(source);
       if (ch == -1) {
@@ -135,12 +178,34 @@ public class JSON {
       } // if
       curChar = (char) ch;
     } // while
-    if (decimals > 0) { // if its decimal
+    if (decimals || expo) { // if its decimal
       return new JSONReal(result.toString());
     } // if
     return new JSONInteger(result.toString());
+  } // parseNum()
+
+  /*
+   * Checks if a character is part of a valid number
+   */
+  private static boolean validNum(char curChar, boolean decimals, boolean expo, boolean sign) throws InvalidJSONException {
+    if (!(Character.isDigit(curChar) || curChar == '.' || curChar == 'e' || curChar == '-')) {
+      return false;
+    }
+    if (curChar == '.' && decimals) {
+      throw new InvalidJSONException("Invalid numeric value: more than 1 decimal point");
+    } else if (curChar == 'e' && expo) {
+      throw new InvalidJSONException("Invalid numeric value: more than 1 exponent sign");
+    } // if-else
+    if (sign && !expo) {
+      // ensure we are adding a sign only after an expo
+      return false;
+    }// if
+    return true;
   }
 
+  /* 
+   * Build a JSON array from the source we are reading from
+  */
   private static JSONArray parseArray(Reader source) throws Exception {
     JSONArray result = new JSONArray();
     int ch;
@@ -166,8 +231,11 @@ public class JSON {
     }// while
     // did not create a proper array
     throw new InvalidJSONException("Invalid Array syntax");
-  }
-
+  } // parseArray()
+  
+  /* 
+   * Build a JSON hash table from the source we are reading from
+  */
   private static JSONHash parseHash(Reader source) throws Exception {
     JSONHash result = new JSONHash();
     JSONValue key;
@@ -206,32 +274,35 @@ public class JSON {
     }// while
     // did not create a proper array
     throw new InvalidJSONException("Invalid Array syntax");
-  }
+  } // parseHash()
   
-
-  private static JSONString parseConstant(Reader source) throws IOException {
+  /* 
+   * Build a JSON constant from the source we are reading from
+  */
+  private static JSONConstant parseConstant(Reader source) throws IOException, InvalidJSONException {
     int ch;
+    source.reset();
+    StringBuilder constant = new StringBuilder();
     ch = skipWhitespace(source);
-    return null;
-  }
-
-  private static JSONValue decide(Reader source, char starterChar) throws Exception{
-    char curChar = starterChar;
-
-    if (curChar == '"') {
-      return parseString(source);
-    } else if (Character.isDigit(curChar)) {
-      return parseNum(source, false);
-    } else if (curChar == '-') {
-      return parseNum(source, true);
-    } else if (curChar == '{') {
-      return parseHash(source);
-    } else if (curChar == '[') {
-      return parseArray(source);
-    } else if (curChar == 'n' || curChar == 'f' || curChar == 't') {
-      return parseConstant(source);
-    } else {
-      throw new InvalidJSONException("Invalid syntax");
-    } // if-else
-  }
+    while (constant.length() < 6) {
+      constant.append((char) ch);
+      if (constant.length() > 3) {
+        String myConst = constant.toString();
+        if (myConst.equals("null")) {
+          skipWhitespace(source);
+          return new JSONConstant(null);
+        } // if
+        if (myConst.equals("true")) {
+          skipWhitespace(source);
+          return new JSONConstant(true);
+        }// if
+        if (myConst.equals("false")) {
+          skipWhitespace(source);
+          return new JSONConstant(false);
+        }// if
+      }// if
+      ch = skipWhitespace(source);
+    }// while
+    throw new InvalidJSONException("Invalid constant syntax");
+  } // parseConstant()
 } // class JSON

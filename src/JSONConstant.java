@@ -4,6 +4,8 @@ import java.io.PrintWriter;
 /**
  * JSON constants.
  * @author Sam Rebelsky
+ * @author Garikai
+ * @author Zakariye
 
  */
 public class JSONConstant implements JSONValue {
@@ -43,7 +45,7 @@ public class JSONConstant implements JSONValue {
   /**
    * Build a new constant.
    */
-  private JSONConstant(Object value) {
+  public JSONConstant(Object value) {
     this.value = value;
   } // JSONConstant
 
