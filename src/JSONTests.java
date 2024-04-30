@@ -1,6 +1,7 @@
 package src;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
@@ -142,7 +143,7 @@ public class JSONTests {
   }
 
 
-    @Test
+  @Test
   void parseHashStringTest() {
     // add values to array and build equivalent string
     JSONHash testHash = new JSONHash();
@@ -160,20 +161,69 @@ public class JSONTests {
       assertEquals(testHash.equals(compare), true);
     } catch (Exception e) {
       fail("Could not parse valid array");
+    } 
+  }
+
+  @Test
+  void arrayNestedTest() {
+    JSONArray array = new JSONArray();
+    JSONHash hash = new JSONHash();
+    hash.set(new JSONString("key"), new JSONInteger(42));
+    array.add(hash);
+    assertEquals(hash, array.get(0));
+  }
+
+  @Test
+  void nestedArrayTest() {
+    JSONArray array = new JSONArray();
+    // initalise arrays with 1 element
+    Object[] nests = new Object[1];
+    array.add(new JSONString(words[0]));
+    nests[0] = array;
+    StringBuilder parsingString = new StringBuilder();
+    parsingString.append("[\""+words[0]+"\"]");
+    for (int i = 1; i < 50; i++) {
+      // create new array to add nested array into to nest further
+      JSONArray nest = new JSONArray();
+      nest.add((JSONValue) nests[0]);
+      nests[0] = nest;
+      // keep our string equally nested
+      parsingString.insert(0, "[");
+      parsingString.append("]");
+    }
+    try {
+      JSONValue compare = JSON.parseString(parsingString.toString());
+      assertEquals(compare, nests[0]);
+    } catch (Exception e) {
+      fail("Failed to read nested array");
+    }
+  }
+
+    @Test
+  void nestedHashTest() {
+    JSONHash array = new JSONHash();
+    // initalise arrays with 1 element
+    Object[] nests = new Object[1];
+    array.set(new JSONString(words[0]), new JSONReal(1));
+    nests[0] = array;
+    StringBuilder parsingString = new StringBuilder();
+    parsingString.append("{\""+words[0]+"\":1.0}");
+    for (int i = 1; i < 50; i++) {
+      // create new array to add nested array into to nest further
+      JSONHash nest = new JSONHash();
+      nest.set(new JSONString(words[0]),(JSONValue) nests[0]);
+      nests[0] = nest;
+      // keep our string equally nested
+      parsingString.insert(0, "{\""+words[0]+"\":");
+      parsingString.append("}");
+    }
+    try {
+      JSONValue compare = JSON.parseString(parsingString.toString());
+      assertEquals(compare, nests[0]);
+    } catch (Exception e) {
+      fail("Failed to read nested array");
     }
     
   }
-
-
-    @Test
-    void arrayNestedTest() {
-        JSONArray array = new JSONArray();
-        JSONHash hash = new JSONHash();
-        hash.set(new JSONString("key"), new JSONInteger(42));
-        array.add(hash);
-        assertEquals(hash, array.get(0));
-    }
-
-
   
 } // class JSONTests

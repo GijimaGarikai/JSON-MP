@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 public class HashTest {
@@ -50,22 +51,25 @@ public class HashTest {
     // JSONValue word = JSON.parseFile("src/readFile.txt");
     // word.writeJSON(pen);
 
-    JSONArray testArr = new JSONArray();
+    JSONHash array = new JSONHash();
+    // initalise arrays with 1 element
+    Object[] nests = new Object[1];
+    array.set(new JSONString(words[0]), new JSONReal(1));
+    nests[0] = array;
     StringBuilder parsingString = new StringBuilder();
-    parsingString.append("[");
-    for (int i = 0; i < words.length; i++) {
-      testArr.add(new JSONString(words[i]));
-      parsingString.append('"'+words[i]+'"').append(",");
+    parsingString.append("{\""+words[0]+"\":1.0}");
+    for (int i = 1; i < 2; i++) {
+      // create new array to add nested array into to nest further
+      JSONHash nest = new JSONHash();
+      nest.set(new JSONString(words[0]),(JSONValue) nests[0]);
+      nests[0] = nest;
+      // keep our string equally nested
+      //String copy = parsingString.toString();
+      parsingString.insert(0, "{\""+words[0]+"\":");
+      parsingString.append("}");
     }
-    // remove last comma
-    parsingString.setLength(parsingString.length()-1);
-    parsingString.append(']');
     pen.println(parsingString.toString());
     JSONValue compare = JSON.parseString(parsingString.toString());
-   
-    compare.writeJSON(pen);
-    testArr.writeJSON(pen);
-
-  }
-  
+    pen.println(compare.equals((JSONValue) nests[0]));  
+}
 }
