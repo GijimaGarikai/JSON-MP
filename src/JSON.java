@@ -243,12 +243,12 @@ public class JSON {
    * Checks if a character is part of a valid number
    */
   private static boolean validNum(char curChar, boolean decimals, boolean expo, boolean sign) throws InvalidJSONException {
-    if (!(Character.isDigit(curChar) || curChar == '.' || curChar == 'e' || curChar == '-' || curChar == '+')) {
+    if (!(Character.isDigit(curChar) || curChar == '.' || curChar == 'e' || curChar == 'E' || curChar == '-' || curChar == '+')) {
       return false;
     }
     if (curChar == '.' && decimals) {
       throw new InvalidJSONException("Invalid numeric value: more than 1 decimal point");
-    } else if (curChar == 'e' && expo) {
+    } else if ((curChar == 'e' || curChar == 'E') && expo) {
       throw new InvalidJSONException("Invalid numeric value: more than 1 exponent sign");
     } // if-else
     if (sign && !expo) {

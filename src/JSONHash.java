@@ -128,7 +128,33 @@ public class JSONHash implements JSONValue {
    * Write the value as JSON.
    */
   public void writeJSON(PrintWriter pen) {
-    pen.println(this.toString());
+    StringBuilder result = new StringBuilder();
+    for (int i = 0; i < this.buckets.length; i++) {
+      // get each bucket
+      @SuppressWarnings("unchecked")
+      ArrayList<KVPair<JSONString,JSONValue>> alist = (ArrayList<KVPair<JSONString,JSONValue>>) this.buckets[i];
+      // skip empty cells
+      if (alist == null) {
+        continue;
+      }// if
+      for (KVPair<JSONString,JSONValue> pair: alist) {
+        if (pair != null) {
+          String kvpair = "\""+pair.key().toString()+"\" : ";
+          if (pair.value() instanceof JSONString) {
+            // special case for strings
+            kvpair += "\""+pair.value().toString()+"\"";
+          } else {
+            kvpair += pair.value().toString();
+          }// if-else
+          result.append(kvpair).append(", ");
+        } // if 
+      } //  for (KVPair<JSONString,JSONValue> pair: alist)
+    } // for (int i = 0; i < this.buckets.length; i++)
+    // Remove the trailing ", " if there are any elements
+    if (result.length() > 0) {
+    result.setLength(result.length() - 2);
+    }
+    pen.println("{"+result.toString()+"}");
   } // writeJSON(PrintWriter)
 
   /**
