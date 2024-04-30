@@ -81,7 +81,7 @@ public class JSON {
   private static JSONValue decideType(Reader source, char starterChar) throws Exception{
     char curChar = starterChar;
     if (curChar == '"') {
-      return parseString(source);
+      return parseJString(source);
     } else if (Character.isDigit(curChar)) {
       return parseNum(source, false);
     } else if (curChar == '-') {
@@ -126,25 +126,58 @@ public class JSON {
     if (curChar == '\\') {
       // read next char to determine type of special char
       source.mark(0);
-      int ch = source.read();
-      if ((char) ch == '\\') {
+      char ch = (char) source.read();
+      if (ch == '\\') {
         return '\\';
-      } else if ((char) ch == 'n') {
+      } else if (ch == 'n') {
         return '\n';
-      } else if ((char) ch == 't') {
+      } else if (ch == 't') {
         return '\t';
-      } else if ((char) ch == 'r') {
+      } else if (ch == 'r') {
         return '\r';
+      } else if (ch == '"') {
+        return '\"';
+      } else if (ch == '/') {
+        return '/';
+      } else if (ch == 'b') {
+        return '\b';
+      } else if (ch == 'f') {
+        return '\f';
+      } else if (ch == 'u') {
+        return readHex(source);
       } else {
         throw new InvalidJSONException("Invalid String syntax, backslash not followed by valid character");
       } // if-else
-    } // if
+    }// if-else
     return curChar;
+  } // charCheck(Reader source, char curChar)
+
+  /*
+   * reads a 4 digit hex value (unicode) and converts it into a character
+   */
+  private static char readHex(Reader source) throws IOException, InvalidJSONException {
+    String hexVal = "";
+    for (int i = 0; i < 4; i++) {
+      source.mark(0);
+      char ch = (char) source.read();
+      // ensure it is a valid Hexadecimal value
+      if (Character.isDigit(ch)) {
+        hexVal += ch;
+        continue;
+      } // if
+      ch = Character.toUpperCase(ch);
+      if (!(('A' <= ch) && (ch <= 'F'))) {
+        throw new InvalidJSONException("Invalid unicode character");
+      } // if
+      hexVal += ch;
+    }
+    // convert hexString into an Integer then cast as a character
+    return (char) Integer.parseInt(hexVal, 16);
   }
   /**
    * Build a JSON string from the source we are reading from
    */
-  private static JSONString parseString(Reader source) throws IOException, ParseException, InvalidJSONException {
+  private static JSONString parseJString(Reader source) throws IOException, ParseException, InvalidJSONException {
     int ch;
     StringBuilder result = new StringBuilder();
     // get next character
@@ -195,10 +228,9 @@ public class JSON {
         sign = true;
       }// if-else
       result.append(curChar);
-      ch = skipWhitespace(source);
-      if (ch == -1) {
-        throw new ParseException("Unexpected end of file", pos);
-      } // if
+      // mark position
+      source.mark(0);
+      ch = source.read();
       curChar = (char) ch;
     } // while
     if (decimals || expo) { // if its decimal
@@ -238,16 +270,21 @@ public class JSON {
       result.add(cur);
       source.reset();
       ch = skipWhitespace(source);
-      if ((char) ch == '"'){
+      if ((char) ch == '"' && (cur instanceof JSONString)){
         ch = skipWhitespace(source);
-      }// if
-      if ((char) ch == ',') {
-        ch = skipWhitespace(source);
-      }// if
+      } else {
+      }// if-else
+      // if we get to the end then return, otherwise we should have a comma
       if ((char) ch == ']') {
         ch = skipWhitespace(source);
         return result;
       }// if
+      // make sure we get a comma after a value
+      if ((char) ch != ',') {
+        throw new InvalidJSONException("Expected comma, instead found "+ (char) ch);
+      }// if
+      // read next value
+      ch = skipWhitespace(source);
     }// while
     // did not create a proper array
     throw new InvalidJSONException("Invalid Array syntax");
@@ -283,14 +320,18 @@ public class JSON {
       ch = skipWhitespace(source);
       if ((char) ch == '"'){
         ch = skipWhitespace(source);
-      }
-      if ((char) ch == ',') {
-        ch = skipWhitespace(source);
-      }
+      }// if
+      // if we get to the end then return, otherwise we should have a comma
       if ((char) ch == '}') {
         ch = skipWhitespace(source);
         return result;
       }// if
+      // make sure we get a comma after a value
+      if ((char) ch != ',') {
+        throw new InvalidJSONException("Expected comma, instead found "+ (char) ch);
+      }// if
+      // read next value
+      ch = skipWhitespace(source);
     }// while
     // did not create a proper array
     throw new InvalidJSONException("Invalid Array syntax");
@@ -301,12 +342,16 @@ public class JSON {
   */
   private static JSONConstant parseConstant(Reader source) throws IOException, InvalidJSONException {
     int ch;
+    // reset to get the first letter in the sequence
     source.reset();
     StringBuilder constant = new StringBuilder();
     ch = skipWhitespace(source);
+    // keep building until we get to length 6
     while (constant.length() < 6) {
       constant.append((char) ch);
+      // keep appending
       if (constant.length() > 3) {
+        // when length is 4 or more, construct string and compare with valid options
         String myConst = constant.toString();
         if (myConst.equals("null")) {
           skipWhitespace(source);

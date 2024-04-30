@@ -45,10 +45,26 @@ public class HashTest {
 
     //   eyes.reset();
     // }
-    JSONReal num = new JSONReal(12e2);
-    num.writeJSON(pen);
-    JSONValue word = JSON.parseFile("src/readFile.txt");
-    word.writeJSON(pen);
+    // JSONReal num = new JSONReal(12e2);
+    // num.writeJSON(pen);
+    // JSONValue word = JSON.parseFile("src/readFile.txt");
+    // word.writeJSON(pen);
+
+    JSONArray testArr = new JSONArray();
+    StringBuilder parsingString = new StringBuilder();
+    parsingString.append("[");
+    for (int i = 0; i < words.length; i++) {
+      testArr.add(new JSONString(words[i]));
+      parsingString.append('"'+words[i]+'"').append(",");
+    }
+    // remove last comma
+    parsingString.setLength(parsingString.length()-1);
+    parsingString.append(']');
+    pen.println(parsingString.toString());
+    JSONValue compare = JSON.parseString(parsingString.toString());
+   
+    compare.writeJSON(pen);
+    testArr.writeJSON(pen);
 
   }
   
