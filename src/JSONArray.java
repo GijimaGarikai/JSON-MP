@@ -86,21 +86,7 @@ public class JSONArray implements JSONValue {
    * Write the value as JSON.
    */
   public void writeJSON(PrintWriter pen) {
-    StringBuilder result = new StringBuilder();
-    for (JSONValue value : this.values) {
-      // Append each string with a comma and space
-      if (value instanceof JSONString) {
-        // special case for strings
-        result.append("\""+value.toString()+"\"");
-      } else {
-        result.append(value.toString()).append(", ");
-      }// if-else 
-    }
-    // Remove the trailing ", " if there are any elements
-    if (result.length() > 0) {
-    result.setLength(result.length() - 2);
-    }
-    pen.println("["+result.toString()+"]");
+    pen.println(this.toString());
   } // writeJSON(PrintWriter)
 
   /**

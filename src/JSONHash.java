@@ -61,27 +61,18 @@ public class JSONHash implements JSONValue {
   /**
    * Convert to a string (e.g., for printing).
    */
+  @SuppressWarnings("unchecked")
   public String toString() {
     StringBuilder result = new StringBuilder();
-    for (int i = 0; i < this.buckets.length; i++) {
-      // get each bucket
-      @SuppressWarnings("unchecked")
-      ArrayList<KVPair<JSONString,JSONValue>> alist = (ArrayList<KVPair<JSONString,JSONValue>>) this.buckets[i];
-      // skip empty cells
-      if (alist == null) {
-        continue;
-      }// if
-      for (KVPair<JSONString,JSONValue> pair: alist) {
-        if (pair != null) {
-          String kvpair = pair.key().toString()+" : "+pair.value().toString();
-          result.append(kvpair).append(", ");
-        } // if 
-      } //  for (KVPair<JSONString,JSONValue> pair: alist)
-    } // for (int i = 0; i < this.buckets.length; i++)
-    // Remove the trailing ", " if there are any elements
-    if (result.length() > 0) {
-    result.setLength(result.length() - 2);
-    }
+    Iterator myIter = this.iterator();
+    while (myIter.hasNext()){
+      KVPair<JSONString, JSONValue> pair = (KVPair<JSONString, JSONValue>) myIter.next();
+      String kvpair = pair.key().toString()+" : "+pair.value().toString();
+      result.append(kvpair);
+      if (myIter.hasNext()) {
+        result.append(",");
+      } // if
+    } // while
     return "{"+result.toString()+"}"; 
   } // toString()
 
@@ -95,21 +86,18 @@ public class JSONHash implements JSONValue {
           return false;
     }
     // compare each item in each respective position
-    for (Object alist: this.buckets) {
-      if (alist == null) {
-        continue;
-      } // if
-      for (KVPair<JSONString,JSONValue> pair: (ArrayList<KVPair<JSONString, JSONValue>>) alist) {
-        try {
-          JSONValue curVal= ((JSONHash) other).get(pair.key());
-          if (!curVal.equals(pair.value())) {
-            return false;
-          }
-        } catch (Exception e) {
+    Iterator myIter = this.iterator();
+    while (myIter.hasNext()) {
+      KVPair<JSONString, JSONValue> pair = (KVPair<JSONString, JSONValue>) myIter.next();
+      try { // compare values
+        JSONValue curVal= ((JSONHash) other).get(pair.key());
+        if (!curVal.equals(pair.value())) {
           return false;
-        } // try-catch
-      } // for
-    } // for
+        } // if
+      } catch (Exception e) {
+        return false;
+      } // try-catch
+    }
     return true;
   } // equals
 
@@ -128,33 +116,7 @@ public class JSONHash implements JSONValue {
    * Write the value as JSON.
    */
   public void writeJSON(PrintWriter pen) {
-    StringBuilder result = new StringBuilder();
-    for (int i = 0; i < this.buckets.length; i++) {
-      // get each bucket
-      @SuppressWarnings("unchecked")
-      ArrayList<KVPair<JSONString,JSONValue>> alist = (ArrayList<KVPair<JSONString,JSONValue>>) this.buckets[i];
-      // skip empty cells
-      if (alist == null) {
-        continue;
-      }// if
-      for (KVPair<JSONString,JSONValue> pair: alist) {
-        if (pair != null) {
-          String kvpair = "\""+pair.key().toString()+"\" : ";
-          if (pair.value() instanceof JSONString) {
-            // special case for strings
-            kvpair += "\""+pair.value().toString()+"\"";
-          } else {
-            kvpair += pair.value().toString();
-          }// if-else
-          result.append(kvpair).append(", ");
-        } // if 
-      } //  for (KVPair<JSONString,JSONValue> pair: alist)
-    } // for (int i = 0; i < this.buckets.length; i++)
-    // Remove the trailing ", " if there are any elements
-    if (result.length() > 0) {
-    result.setLength(result.length() - 2);
-    }
-    pen.println("{"+result.toString()+"}");
+    pen.println(this.toString());
   } // writeJSON(PrintWriter)
 
   /**
