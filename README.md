@@ -5,6 +5,7 @@
 This project provides a set of Java classes designed for parsing and handling JSON data efficiently. The library supports parsing from strings to JSON objects and vice versa. It includes support for JSON primitives (strings, integers, booleans, null), as well as complex types like objects (hashes) and arrays.
 
 ## Classes
+- **`JSON`**: Parser class that parses Files/Strings and returns the stored JSON values.
 - **`JSONValue`**: The base interface for all JSON values.
 - **`JSONString`**: Represents a JSON string value.
 - **`JSONInteger`**: Represents a JSON integer value.
