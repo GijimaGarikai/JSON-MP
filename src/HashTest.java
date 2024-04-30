@@ -69,7 +69,7 @@ public class HashTest {
       parsingString.append("}");
     }
     pen.println(parsingString.toString());
-    JSONValue compare = JSON.parseString(parsingString.toString());
+    JSONValue compare = JSON.parse(parsingString.toString());
     pen.println(compare.equals((JSONValue) nests[0]));  
 }
 }

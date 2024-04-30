@@ -29,7 +29,7 @@ public class JSON {
   /**
    * Parse a string into JSON.
    */
-  public static JSONValue parseString(String source) throws Exception {
+  public static JSONValue parse(String source) throws Exception {
     return parse(new StringReader(source));
   } // parse(String)
 
