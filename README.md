@@ -17,6 +17,7 @@ This project provides a set of Java classes designed for parsing and handling JS
 
 ## Acknowledgements
 - Sam Rebelsky provided starter code and instructions.
+- JSONHash was implemented largely based on the chained hashtable worked on by Garikai and Shibam in an in-class lab
 - Java Docs were super useful for understanding the `Reader` class used in JSON parsing. 
 ## Authors
 - SamR | Zakariye | Garikai
