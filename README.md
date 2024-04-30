@@ -1,10 +1,22 @@
-Mini-Project 8: JSON
-====================
 
-A simple JSON parser.
+# JSON MP10
 
-Implemented by NAME and NAME for CSC-207-01 2023Fa.
+## Description
+This project provides a set of Java classes designed for parsing and handling JSON data efficiently. The library supports parsing from strings to JSON objects and vice versa. It includes support for JSON primitives (strings, integers, booleans, null), as well as complex types like objects (hashes) and arrays.
 
-Acknowledgements:
+## Classes
+- **`JSONValue`**: The base interface for all JSON values.
+- **`JSONString`**: Represents a JSON string value.
+- **`JSONInteger`**: Represents a JSON integer value.
+- **`JSONReal`**: Represents a JSON real number.
+- **`JSONConstant`**: Handles JSON constants like `true`, `false`, and `null`.
+- **`JSONArray`**: Represents a JSON array, a sequential list of JSON values.
+- **`JSONHash`**: Represents a JSON object, a collection of key-value pairs.
+- **`KVPair`**: A utility class to represent key-value pairs in JSON objects.
+- **`InvalidJSONException`**: Exception class thrown when an invalid JSON is encountered during parsing.
 
-* Skeleton code by SamR
+## Acknowledgements
+- Sam Rebelsky provided starter code and instructions.
+- Java Docs were super useful for understanding the `Reader` class used in JSON parsing. 
+## Authors
+- SamR | Zakariye | Garikai
