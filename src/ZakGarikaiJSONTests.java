@@ -314,5 +314,58 @@ public class ZakGarikaiJSONTests {
         () -> JSON.parse(badTable),
         "prevIndex after add");
   } // exceptionHashTest()
+
+  /*
+   * Check if the parser can read empty hash tables and arrays
+   */
+  @Test
+  void emptyArrayHashParseTest() {
+    // make empty JSON objects
+    JSONHash hash = new JSONHash();
+    JSONArray arr  = new JSONArray();
+    String arrString = "[]";
+    String hashString = "{}";
+    try {
+      assertEquals(hash, JSON.parse(hashString));
+    } catch (Exception e) {
+      fail("could not parse empty hash");
+    } // try-catch
+    try {
+      assertEquals(arr, JSON.parse(arrString));
+    } catch (Exception e) {
+      fail("could not parse empty array");
+    } // try-catch
+  } // emptyArrayHashParseTest()
+
+  /*
+   * Check if the parser can handle hashtables and arrays with only constant values
+   */
+  @Test
+  void constantsArrayHashTest() {
+    JSONHash hash = new JSONHash();
+    JSONArray arr = new JSONArray();
+    // make strings to parse
+    String arrString = "[null, true, false]";
+    String hashString = "{\"null\":null, \"true\":true, \"false\":false}";
+    // make equivalent JSON objects
+    hash.set(new JSONString("false"), new JSONConstant(false));
+    hash.set(new JSONString("null"), new JSONConstant(null));
+    hash.set(new JSONString("true"), new JSONConstant(true));
+    arr.add(new JSONConstant(null));
+    arr.add(new JSONConstant(true));
+    arr.add(new JSONConstant(false));
+
+    try {
+      assertEquals(arr, JSON.parse(arrString));
+    } catch (Exception e) {
+      fail("Could not parse array");
+    } // try-catch
+
+    try {
+      assertEquals(hash, JSON.parse(hashString));
+    } catch (Exception e) {
+      fail("Could not parse hash");
+    } // try-catch
+  }// constantsArrayHashTest()
   
 } // class JSONTests
