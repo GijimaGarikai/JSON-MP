@@ -265,6 +265,11 @@ public class JSON {
     JSONArray result = new JSONArray();
     int ch;
     ch = skipWhitespace(source);
+    // if we get an empty array
+    if ((char) ch == ']') {
+      ch = skipWhitespace(source);
+      return result;
+    } // if
     while (ch != -1) {
       JSONValue cur = decideType(source, (char) ch);
       result.add(cur);
@@ -299,6 +304,11 @@ public class JSON {
     JSONValue value;
     int ch;
     ch = skipWhitespace(source);
+    // if we get an empty hash
+    if ((char) ch == '}') {
+      ch = skipWhitespace(source);
+      return result;
+    }// if
     while (ch != -1) {
       key = decideType(source, (char) ch);
       // last thing read from a string is '"' so no need to reset
