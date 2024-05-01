@@ -78,7 +78,7 @@ public class JSONReal implements JSONValue {
    * Write the value as JSON.
    */
   public void writeJSON(PrintWriter pen) {
-    pen.println(this.toString());
+    pen.print(this.toString());
   } // writeJSON(PrintWriter)
 
   /**
