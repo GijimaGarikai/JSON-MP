@@ -34,13 +34,18 @@ public class JSONHash implements JSONValue {
   /**
    * The array that we use to store the key/value pairs.
    */
-  Object[] buckets = new Object[4];
+  Object[] buckets;
 
   /**
    * Our helpful random number generator, used primarily when expanding the size
    * of the table..
    */
   Random rand;
+ 
+  /*
+   * Initial size of array with KVPairs
+   */
+  static int INIT_SIZE = 8;
 
   // +--------------+------------------------------------------------
   // | Constructors |
@@ -51,6 +56,7 @@ public class JSONHash implements JSONValue {
    */
   public JSONHash() {
     this.rand = new Random();
+    this.buckets = new Object[INIT_SIZE];
   } // JSONHash
 
 
