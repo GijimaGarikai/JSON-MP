@@ -90,8 +90,13 @@ public class JSONHash implements JSONValue {
     // check type
     if (!(other instanceof JSONHash)) {
           return false;
-    }
-    // compare each item in each respective position
+    } // if
+
+    // check sizes
+    if (!(this.size() == ((JSONHash) other).size())) {
+      return false;
+    } // if
+    // compare each pair in the table to the other table
     Iterator myIter = this.iterator();
     while (myIter.hasNext()) {
       KVPair<JSONString, JSONValue> pair = (KVPair<JSONString, JSONValue>) myIter.next();
@@ -103,7 +108,7 @@ public class JSONHash implements JSONValue {
       } catch (Exception e) {
         return false;
       } // try-catch
-    }
+    } // while
     return true;
   } // equals
 
