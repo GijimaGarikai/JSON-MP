@@ -126,8 +126,22 @@ public class JSONHash implements JSONValue {
   /**
    * Write the value as JSON.
    */
+  @SuppressWarnings("unchecked")
   public void writeJSON(PrintWriter pen) {
-    pen.print(this.toString());
+    Iterator myIter = this.iterator();
+    pen.print("{");
+    while (myIter.hasNext()) {
+      KVPair<JSONString, JSONValue> pair = (KVPair<JSONString, JSONValue>) myIter.next();
+      pair.key().writeJSON(pen);
+      pen.print(" : ");
+      pair.value().writeJSON(pen);
+      if (myIter.hasNext()) {
+        // if more pairs, separate
+        pen.print(", ");
+      }
+    }
+    pen.print("}");
+    pen.flush();
   } // writeJSON(PrintWriter)
 
   /**

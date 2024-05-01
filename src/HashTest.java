@@ -35,41 +35,12 @@ public class HashTest {
     // myReal.writeJSON(pen);
     // myInt.writeJSON(pen);
 
-    InputStream eyes = System.in;
-    // pen.println((char) eyes.read());
-    // eyes.mark(0);
-    // for (int i =0; i< 15; i++) {
-    //   pen.println((char) eyes.read());
-    //   pen.println((char) eyes.read());
-    //   pen.println((char) eyes.read());
-    //   pen.println((char) eyes.read());
-
-    //   eyes.reset();
-    // }
-    // JSONReal num = new JSONReal(12e2);
-    // num.writeJSON(pen);
-    // JSONValue word = JSON.parseFile("src/readFile.txt");
-    // word.writeJSON(pen);
-
-    JSONHash array = new JSONHash();
-    // initalise arrays with 1 element
-    Object[] nests = new Object[1];
-    array.set(new JSONString(words[0]), new JSONReal(1));
-    nests[0] = array;
-    StringBuilder parsingString = new StringBuilder();
-    parsingString.append("{\""+words[0]+"\":1.0}");
-    for (int i = 1; i < 2; i++) {
-      // create new array to add nested array into to nest further
-      JSONHash nest = new JSONHash();
-      nest.set(new JSONString(words[0]),(JSONValue) nests[0]);
-      nests[0] = nest;
-      // keep our string equally nested
-      //String copy = parsingString.toString();
-      parsingString.insert(0, "{\""+words[0]+"\":");
-      parsingString.append("}");
-    }
-    pen.println(parsingString.toString());
-    JSONValue compare = JSON.parse(parsingString.toString());
-    pen.println(compare.equals((JSONValue) nests[0]));  
-}
+    JSONReal num = new JSONReal(12e2);
+    //num.writeJSON(pen);
+    JSONValue word = JSON.parseFile("src/readFile.txt");
+    word.writeJSON(pen);
+    pen.println();
+    pen.println(word.toString());
+    pen.close();
+  }
 }

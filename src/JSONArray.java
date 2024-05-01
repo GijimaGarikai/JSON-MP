@@ -86,7 +86,18 @@ public class JSONArray implements JSONValue {
    * Write the value as JSON.
    */
   public void writeJSON(PrintWriter pen) {
-    pen.print(this.toString());
+    Iterator myIter = this.values.iterator();
+    pen.print("[");
+    while (myIter.hasNext()) {
+      JSONValue curVal = (JSONValue) myIter.next();
+      curVal.writeJSON(pen);
+      if (myIter.hasNext()) {
+        // if more values, separate
+        pen.print(", ");
+      }
+    }
+    pen.print("]");
+    pen.flush();
   } // writeJSON(PrintWriter)
 
   /**
